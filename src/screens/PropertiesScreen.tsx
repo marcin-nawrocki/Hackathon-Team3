@@ -9,10 +9,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, spacing } from '../theme';
+import { fonts, Palette, spacing } from '../theme';
+import { useTheme, useThemedStyles } from '../ThemeContext';
 import { contentMaxWidth, gridItemWidth, usePropertyColumns } from '../constants/layout';
 import { properties as allProperties } from '../data/properties';
-import { AppBar, ChipOption, FilterChips, SearchBar } from '../components/ui';
+import { AppBar, ChipOption, FilterChips, SearchBar, ThemeToggle } from '../components/ui';
 import PropertyCard from '../components/properties/PropertyCard';
 import SearchSuggestions from '../components/properties/SearchSuggestions';
 
@@ -27,6 +28,7 @@ const FILTERS: ChipOption<Filter>[] = [
 type Props = {
   onLogout: () => void;
   onOpenProperty: (propertyId: string) => void;
+  onOpenStatistics: () => void;
 };
 
 function matchesQuery(
@@ -40,10 +42,16 @@ function matchesQuery(
   );
 }
 
-export default function PropertiesScreen({ onLogout, onOpenProperty }: Props) {
+export default function PropertiesScreen({
+  onLogout,
+  onOpenProperty,
+  onOpenStatistics,
+}: Props) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [searchFocused, setSearchFocused] = useState(false);
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -72,19 +80,22 @@ export default function PropertiesScreen({ onLogout, onOpenProperty }: Props) {
       <AppBar maxWidth={contentMaxWidth.properties}>
         <View style={styles.appBarContent}>
           <Image
-            source={require('../../assets/logo.png')}
+            source={require('../../assets/sh_logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-          <Pressable
-            style={styles.logoutBtn}
-            onPress={onLogout}
-            hitSlop={8}
-            accessibilityLabel="Log out"
-          >
-            <Ionicons name="log-out-outline" size={20} color={colors.textMuted} />
-            <Text style={styles.logoutText}>Log out</Text>
-          </Pressable>
+          <View style={styles.appBarRight}>
+            <ThemeToggle />
+            <Pressable
+              style={styles.logoutBtn}
+              onPress={onLogout}
+              hitSlop={8}
+              accessibilityLabel="Log out"
+            >
+              <Ionicons name="log-out-outline" size={20} color={colors.textMuted} />
+              <Text style={styles.logoutText}>Log out</Text>
+            </Pressable>
+          </View>
         </View>
       </AppBar>
 
@@ -95,10 +106,20 @@ export default function PropertiesScreen({ onLogout, onOpenProperty }: Props) {
       >
         <View style={styles.content}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>Properties</Text>
-            <Text style={styles.subtitle}>
-              {allProperties.length} total · {liveCount} live
-            </Text>
+            <View style={styles.titleTextWrap}>
+              <Text style={styles.title}>Properties</Text>
+              <Text style={styles.subtitle}>
+                {allProperties.length} total · {liveCount} live
+              </Text>
+            </View>
+            <Pressable
+              style={styles.statsBtn}
+              onPress={onOpenStatistics}
+              accessibilityLabel="Open statistics"
+            >
+              <Ionicons name="bar-chart" size={16} color={colors.white} />
+              <Text style={styles.statsBtnText}>Statistics</Text>
+            </Pressable>
           </View>
 
           <SearchBar
@@ -123,7 +144,7 @@ export default function PropertiesScreen({ onLogout, onOpenProperty }: Props) {
 
           {filtered.length === 0 ? (
             <View style={styles.empty}>
-              <Ionicons name="file-tray-outline" size={40} color="#ccc" />
+              <Ionicons name="file-tray-outline" size={40} color={colors.border} />
               <Text style={styles.emptyText}>No properties found</Text>
             </View>
           ) : (
@@ -144,7 +165,8 @@ export default function PropertiesScreen({ onLogout, onOpenProperty }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
@@ -157,7 +179,12 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 150,
-    height: 30,
+    height: 38,
+  },
+  appBarRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   logoutBtn: {
     flexDirection: 'row',
@@ -182,8 +209,29 @@ const styles = StyleSheet.create({
     maxWidth: contentMaxWidth.properties,
   },
   titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
     marginTop: 20,
     marginBottom: 12,
+  },
+  titleTextWrap: {
+    flex: 1,
+  },
+  statsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.green,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 8,
+  },
+  statsBtnText: {
+    fontFamily: fonts.semibold,
+    fontSize: 14,
+    color: colors.white,
   },
   title: {
     fontFamily: fonts.semibold,
@@ -210,6 +258,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: '#999',
+    color: colors.textMuted,
   },
 });

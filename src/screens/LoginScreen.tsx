@@ -11,7 +11,8 @@ import {
   Text,
   View,
 } from 'react-native';
-import { colors, fonts, radii } from '../theme';
+import { fonts, Palette, radii } from '../theme';
+import { useThemedStyles } from '../ThemeContext';
 import { contentMaxWidth } from '../constants/layout';
 import {
   Card,
@@ -33,6 +34,7 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
   const [loading, setLoading] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const styles = useThemedStyles(createStyles);
 
   const handleLogin = async () => {
     const nextUsernameError = username.trim() ? '' : 'Please enter your username.';
@@ -60,7 +62,7 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
         <View style={styles.cardWrapper}>
           <Card style={styles.card}>
             <Image
-              source={require('../../assets/logo.png')}
+              source={require('../../assets/sh_logo.png')}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -141,7 +143,8 @@ export default function LoginScreen({ onLoginSuccess }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: colors.background,
@@ -164,10 +167,10 @@ const styles = StyleSheet.create({
     paddingVertical: 30,
   },
   logo: {
-    width: 215,
-    height: 48,
+    width: 220,
+    height: 84,
     alignSelf: 'center',
-    marginBottom: 36,
+    marginBottom: 32,
   },
   forgotPassword: {
     fontFamily: fonts.light,

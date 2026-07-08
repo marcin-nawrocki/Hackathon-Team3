@@ -4,7 +4,7 @@
     "slug": "supercontrol-login",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/sh_logo.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true
@@ -20,7 +20,7 @@
       "package": "com.anonymous.supercontrollogin"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/sh_logo.png"
     },
     "plugins": [
       "expo-font"

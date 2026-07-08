@@ -1,16 +1,41 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts } from '../theme';
+import { fonts, Palette } from '../theme';
+import { useTheme, useThemedStyles } from '../ThemeContext';
 import { contentMaxWidth, gridItemWidth, useMonthColumns } from '../constants/layout';
 import { properties } from '../data/properties';
-import { getBookedDays, getBookings } from '../data/bookings';
+import { Booking, getBookedDays, getBookings } from '../data/bookings';
 import { MONTHS, daysInYear } from '../utils/calendar';
 import { AppBar, Select, SelectOption } from '../components/ui';
 import MonthGrid from '../components/calendar/MonthGrid';
 import CalendarSummary from '../components/calendar/CalendarSummary';
 import CalendarLegend from '../components/calendar/CalendarLegend';
+import DayBookingModal, { NewBookingInput } from '../components/calendar/DayBookingModal';
+
+function addDays(date: string, days: number): string {
+  const d = new Date(`${date}T00:00:00`);
+  d.setDate(d.getDate() + days);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
+function expandNights(checkIn: string, checkOut: string): string[] {
+  const days: string[] = [];
+  const out = new Date(`${checkOut}T00:00:00`).getTime();
+  let cur = new Date(`${checkIn}T00:00:00`);
+  while (cur.getTime() < out) {
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, '0');
+    const dd = String(cur.getDate()).padStart(2, '0');
+    days.push(`${y}-${m}-${dd}`);
+    cur.setDate(cur.getDate() + 1);
+  }
+  return days;
+}
 
 const YEARS = [2026, 2025, 2024, 2023];
 
@@ -30,6 +55,11 @@ export default function BookingCalendarScreen({
   onChangeYear,
 }: Props) {
   const property = properties.find((p) => p.id === propertyId) ?? properties[0];
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
+
+  const [manualBookings, setManualBookings] = useState<Booking[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // More occupied properties show more bookings; keep it bounded.
   const density = useMemo(
@@ -37,18 +67,66 @@ export default function BookingCalendarScreen({
     [property.occupancy],
   );
 
-  const bookedDays = useMemo(
-    () => getBookedDays(property.id, year, density),
+  const generatedBookings = useMemo(
+    () => getBookings(property.id, year, density),
     [property.id, year, density],
   );
 
-  const bookingCount = useMemo(
-    () => getBookings(property.id, year, density).length,
-    [property.id, year, density],
+  const manualForYear = useMemo(
+    () =>
+      manualBookings.filter(
+        (b) => b.propertyId === property.id && b.checkIn.slice(0, 4) === String(year),
+      ),
+    [manualBookings, property.id, year],
   );
 
+  const allBookings = useMemo(
+    () => [...generatedBookings, ...manualForYear],
+    [generatedBookings, manualForYear],
+  );
+
+  const bookedDays = useMemo(() => {
+    const set = getBookedDays(property.id, year, density);
+    for (const b of manualForYear) {
+      for (const day of expandNights(b.checkIn, b.checkOut)) set.add(day);
+    }
+    return set;
+  }, [property.id, year, density, manualForYear]);
+
+  const bookingCount = allBookings.length;
   const nightsBooked = bookedDays.size;
   const occupancyPct = Math.round((nightsBooked / daysInYear(year)) * 100);
+
+  const selectedBooking = useMemo(() => {
+    if (!selectedDate) return null;
+    return (
+      allBookings.find((b) => b.checkIn <= selectedDate && selectedDate < b.checkOut) ?? null
+    );
+  }, [selectedDate, allBookings]);
+
+  const handleAddBooking = (input: NewBookingInput) => {
+    const checkOut = addDays(input.checkIn, input.nights);
+    const ref = `${property.id}-${year}-M${manualForYear.length + 1}`;
+    const nightlyRate = Math.max(
+      35,
+      Math.round((42 + property.sleeps * 16 + (property.occupancy ?? 50) * 0.5) / 5) * 5,
+    );
+    const newBooking: Booking = {
+      ref,
+      propertyId: property.id,
+      checkIn: input.checkIn,
+      checkOut,
+      guests: input.guests,
+      arrivalHour: input.arrivalHour,
+      departureHour: 10,
+      countryCode: input.countryCode,
+      source: input.source,
+      nightlyRate,
+      revenue: nightlyRate * input.nights,
+    };
+    setManualBookings((prev) => [...prev, newBooking]);
+    setSelectedDate(null);
+  };
 
   const yearOptions: SelectOption[] = YEARS.map((y) => ({
     label: String(y),
@@ -127,17 +205,27 @@ export default function BookingCalendarScreen({
                 year={year}
                 month={month}
                 bookedDays={bookedDays}
+                onPressDay={setSelectedDate}
                 style={monthStyle}
               />
             ))}
           </View>
         </View>
       </ScrollView>
+
+      <DayBookingModal
+        visible={selectedDate !== null}
+        date={selectedDate}
+        booking={selectedBooking}
+        onClose={() => setSelectedDate(null)}
+        onAdd={handleAddBooking}
+      />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,

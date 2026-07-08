@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, fonts, radii } from '../../theme';
+import { fonts, radii } from '../../theme';
+import { useTheme } from '../../ThemeContext';
 import { PropertyStatus } from '../../data/properties';
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
 
 /** Coloured "Live" / "Offline" pill with a status dot. */
 export default function StatusBadge({ status }: Props) {
+  const { colors } = useTheme();
   const isLive = status === 'live';
   return (
     <View

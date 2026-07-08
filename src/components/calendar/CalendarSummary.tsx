@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, fonts, radii, shadows } from '../../theme';
+import { fonts, Palette, radii, shadows } from '../../theme';
+import { useThemedStyles } from '../../ThemeContext';
 
 export type SummaryStat = {
   value: string | number;
@@ -12,6 +13,7 @@ type Props = {
 
 /** Horizontal card of headline stats separated by dividers. */
 export default function CalendarSummary({ stats }: Props) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.card}>
       {stats.map((stat, index) => (
@@ -27,39 +29,40 @@ export default function CalendarSummary({ stats }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: radii.lg,
-    paddingVertical: 14,
-    marginTop: 12,
-    ...shadows.card,
-  },
-  itemWrap: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  item: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  value: {
-    fontFamily: fonts.semibold,
-    fontSize: 20,
-    color: colors.text,
-  },
-  label: {
-    fontFamily: fonts.regular,
-    fontSize: 12,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-  divider: {
-    width: 1,
-    height: 32,
-    backgroundColor: '#eee',
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      paddingVertical: 14,
+      marginTop: 12,
+      ...shadows.card,
+    },
+    itemWrap: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    item: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    value: {
+      fontFamily: fonts.semibold,
+      fontSize: 20,
+      color: colors.text,
+    },
+    label: {
+      fontFamily: fonts.regular,
+      fontSize: 12,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+    divider: {
+      width: 1,
+      height: 32,
+      backgroundColor: colors.divider,
+    },
+  });

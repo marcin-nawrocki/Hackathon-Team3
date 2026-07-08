@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, Palette, radii, spacing } from '../../theme';
+import { useThemedStyles } from '../../ThemeContext';
 
 export type ChipOption<T extends string> = {
   key: T;
@@ -18,6 +19,7 @@ export default function FilterChips<T extends string>({
   value,
   onChange,
 }: Props<T>) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.row}>
       {options.map((option) => {
@@ -38,31 +40,32 @@ export default function FilterChips<T extends string>({
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.md,
-    marginBottom: spacing.xs,
-  },
-  chip: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 6,
-    borderRadius: radii.pill,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-  },
-  chipActive: {
-    backgroundColor: colors.green,
-    borderColor: colors.green,
-  },
-  chipText: {
-    fontFamily: fonts.regular,
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  chipTextActive: {
-    color: colors.white,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      marginTop: spacing.md,
+      marginBottom: spacing.xs,
+    },
+    chip: {
+      paddingHorizontal: spacing.lg,
+      paddingVertical: 6,
+      borderRadius: radii.pill,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.borderLight,
+    },
+    chipActive: {
+      backgroundColor: colors.green,
+      borderColor: colors.green,
+    },
+    chipText: {
+      fontFamily: fonts.regular,
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    chipTextActive: {
+      color: colors.white,
+    },
+  });

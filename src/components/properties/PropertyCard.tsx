@@ -1,6 +1,7 @@
 import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, radii, shadows, spacing } from '../../theme';
+import { fonts, Palette, radii, shadows, spacing } from '../../theme';
+import { useTheme, useThemedStyles } from '../../ThemeContext';
 import { Property } from '../../data/properties';
 import { StatusBadge } from '../ui';
 
@@ -13,12 +14,14 @@ type Props = {
 type StatProps = {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
+  styles: ReturnType<typeof createStyles>;
+  color: string;
 };
 
-function Stat({ icon, label }: StatProps) {
+function Stat({ icon, label, styles, color }: StatProps) {
   return (
     <View style={styles.stat}>
-      <Ionicons name={icon} size={14} color={colors.textMuted} />
+      <Ionicons name={icon} size={14} color={color} />
       <Text style={styles.statText}>{label}</Text>
     </View>
   );
@@ -26,11 +29,13 @@ function Stat({ icon, label }: StatProps) {
 
 /** Summary card for a single property in the list. */
 export default function PropertyCard({ item, onPress, style }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable
       style={[styles.card, style]}
       onPress={onPress}
-      android_ripple={{ color: '#eee' }}
+      android_ripple={{ color: colors.divider }}
     >
       <View style={[styles.thumb, { backgroundColor: item.accent }]}>
         <Ionicons name="home" size={26} color="rgba(255,255,255,0.9)" />
@@ -52,9 +57,9 @@ export default function PropertyCard({ item, onPress, style }: Props) {
         </View>
 
         <View style={styles.statsRow}>
-          <Stat icon="people-outline" label={`Sleeps ${item.sleeps}`} />
-          <Stat icon="bed-outline" label={`${item.bedrooms} bed`} />
-          <Stat icon="calendar-outline" label={`${item.upcomingBookings} upcoming`} />
+          <Stat icon="people-outline" label={`Sleeps ${item.sleeps}`} styles={styles} color={colors.textMuted} />
+          <Stat icon="bed-outline" label={`${item.bedrooms} bed`} styles={styles} color={colors.textMuted} />
+          <Stat icon="calendar-outline" label={`${item.upcomingBookings} upcoming`} styles={styles} color={colors.textMuted} />
         </View>
 
         <View style={styles.occupancyRow}>
@@ -65,98 +70,99 @@ export default function PropertyCard({ item, onPress, style }: Props) {
         </View>
       </View>
 
-      <Ionicons name="chevron-forward" size={18} color="#c8c8c8" style={styles.chevron} />
+      <Ionicons name="chevron-forward" size={18} color={colors.border} style={styles.chevron} />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    marginBottom: 14,
-    ...shadows.card,
-  },
-  thumb: {
-    width: 64,
-    height: 64,
-    borderRadius: radii.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  body: {
-    flex: 1,
-  },
-  chevron: {
-    marginLeft: 6,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  title: {
-    flex: 1,
-    fontFamily: fonts.semibold,
-    fontSize: 16,
-    color: colors.text,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    marginTop: 2,
-  },
-  location: {
-    flex: 1,
-    fontFamily: fonts.regular,
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-    marginTop: spacing.sm,
-  },
-  stat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-  },
-  statText: {
-    fontFamily: fonts.regular,
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  occupancyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginTop: 10,
-  },
-  occupancyTrack: {
-    flex: 1,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#eee',
-    overflow: 'hidden',
-  },
-  occupancyFill: {
-    height: '100%',
-    borderRadius: 3,
-    backgroundColor: colors.green,
-  },
-  occupancyText: {
-    fontFamily: fonts.regular,
-    fontSize: 12,
-    color: colors.textMuted,
-    width: 58,
-    textAlign: 'right',
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      padding: spacing.md,
+      marginBottom: 14,
+      ...shadows.card,
+    },
+    thumb: {
+      width: 64,
+      height: 64,
+      borderRadius: radii.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    body: {
+      flex: 1,
+    },
+    chevron: {
+      marginLeft: 6,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: spacing.sm,
+    },
+    title: {
+      flex: 1,
+      fontFamily: fonts.semibold,
+      fontSize: 16,
+      color: colors.text,
+    },
+    locationRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      marginTop: 2,
+    },
+    location: {
+      flex: 1,
+      fontFamily: fonts.regular,
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.md,
+      marginTop: spacing.sm,
+    },
+    stat: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+    },
+    statText: {
+      fontFamily: fonts.regular,
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+    occupancyRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      marginTop: 10,
+    },
+    occupancyTrack: {
+      flex: 1,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.divider,
+      overflow: 'hidden',
+    },
+    occupancyFill: {
+      height: '100%',
+      borderRadius: 3,
+      backgroundColor: colors.green,
+    },
+    occupancyText: {
+      fontFamily: fonts.regular,
+      fontSize: 12,
+      color: colors.textMuted,
+      width: 58,
+      textAlign: 'right',
+    },
+  });

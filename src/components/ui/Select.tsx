@@ -10,7 +10,8 @@ import {
   ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, radii, shadows } from '../../theme';
+import { fonts, Palette, radii, shadows } from '../../theme';
+import { useTheme, useThemedStyles } from '../../ThemeContext';
 
 export type SelectOption = { label: string; value: string };
 
@@ -26,6 +27,8 @@ type Props = {
 /** Dropdown that opens options in a centered modal (reliable across platforms). */
 export default function Select({ value, options, onChange, icon, title, style }: Props) {
   const [open, setOpen] = useState(false);
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const current = options.find((o) => o.value === value);
 
   return (
@@ -86,7 +89,8 @@ export default function Select({ value, options, onChange, icon, title, style }:
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
   field: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -96,7 +100,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     borderWidth: 1,
     borderColor: colors.borderLight,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   fieldOpen: {
     borderColor: colors.green,
@@ -117,7 +121,7 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 300,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: radii.xl,
     paddingVertical: 8,
     paddingHorizontal: 4,

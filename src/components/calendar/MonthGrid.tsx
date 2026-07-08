@@ -1,16 +1,19 @@
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { colors, fonts, radii, shadows } from '../../theme';
+import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { fonts, Palette, radii, shadows } from '../../theme';
+import { useThemedStyles } from '../../ThemeContext';
 import { MONTHS, WEEKDAYS, monthCells, pad2 } from '../../utils/calendar';
 
 type Props = {
   year: number;
   month: number;
   bookedDays: Set<string>;
+  onPressDay?: (date: string) => void;
   style?: StyleProp<ViewStyle>;
 };
 
 /** A single month's day grid with booked days highlighted. */
-export default function MonthGrid({ year, month, bookedDays, style }: Props) {
+export default function MonthGrid({ year, month, bookedDays, onPressDay, style }: Props) {
+  const styles = useThemedStyles(createStyles);
   const cells = monthCells(year, month);
   const monthKey = `${year}-${pad2(month + 1)}`;
 
@@ -31,15 +34,29 @@ export default function MonthGrid({ year, month, bookedDays, style }: Props) {
           if (day === null) {
             return <View key={i} style={styles.dayCell} />;
           }
-          const booked = bookedDays.has(`${monthKey}-${pad2(day)}`);
+          const date = `${monthKey}-${pad2(day)}`;
+          const booked = bookedDays.has(date);
           return (
-            <View key={i} style={styles.dayCell}>
-              <View style={[styles.dayInner, booked && styles.dayBooked]}>
-                <Text style={[styles.dayText, booked && styles.dayTextBooked]}>
-                  {day}
-                </Text>
-              </View>
-            </View>
+            <Pressable
+              key={i}
+              style={styles.dayCell}
+              onPress={onPressDay ? () => onPressDay(date) : undefined}
+              disabled={!onPressDay}
+            >
+              {({ pressed }) => (
+                <View
+                  style={[
+                    styles.dayInner,
+                    booked && styles.dayBooked,
+                    pressed && styles.dayPressed,
+                  ]}
+                >
+                  <Text style={[styles.dayText, booked && styles.dayTextBooked]}>
+                    {day}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
           );
         })}
       </View>
@@ -49,9 +66,10 @@ export default function MonthGrid({ year, month, bookedDays, style }: Props) {
 
 const CELL = `${100 / 7}%` as const;
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: radii.lg,
     paddingHorizontal: 10,
     paddingTop: 12,
@@ -97,6 +115,10 @@ const styles = StyleSheet.create({
   },
   dayBooked: {
     backgroundColor: colors.green,
+  },
+  dayPressed: {
+    borderWidth: 1.5,
+    borderColor: colors.greenDark,
   },
   dayText: {
     fontFamily: fonts.regular,
